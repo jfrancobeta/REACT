@@ -1,52 +1,66 @@
-import { useState } from "react";
+import { useReducer } from "react";
 
+
+
+// Reducer que hace return state + action (solo para números)
+function reducer(state: State, action: {type: string, payload: number}) {
+  switch(action.type) {
+    case 'inc':
+      return { ...state, count: state.count + state.step };
+    case 'dec':
+      return { ...state, count: state.count - state.step };
+    case 'defineCount':
+      return { ...state, count: action.payload };
+    case 'defineStep':
+      return { ...state, step: action.payload };
+    case 'reset':
+      return { count: 0, step: 1 };
+    default:
+      return state;
+  }
+}
+
+interface State {
+  count: number;
+  step: number;
+}
 function DateCounter() {
-  const [count, setCount] = useState(0);
-  const [step, setStep] = useState(1);
+  const initalState : State = {
+    count: 0,
+    step: 1
+  }
+  const [state, dispatch] = useReducer(reducer, initalState);
 
-  // This mutates the date object.
+
   const date = new Date("june 21 2027");
-  date.setDate(date.getDate() + count);
+  date.setDate(date.getDate() + state.count);
 
   const dec = function () {
-    // setCount((count) => count - 1);
-    setCount((count) => count - step);
+    dispatch({type: 'dec', payload: -state.step });
   };
 
   const inc = function () {
-    // setCount((count) => count + 1);
-    setCount((count) => count + step);
+    dispatch({type: 'inc', payload: state.step });
   };
 
   const defineCount = function (e: React.ChangeEvent<HTMLInputElement>) {
-    setCount(Number(e.target.value));
-  };
-
-  const defineStep = function (e: React.ChangeEvent<HTMLInputElement>) {
-    setStep(Number(e.target.value));
+    dispatch({type: 'defineCount', payload: Number(e.target.value)});
   };
 
   const reset = function () {
-    setCount(0);
-    setStep(1);
+    dispatch({type: 'reset', payload: -state.count});
   };
 
   return (
     <div className="counter">
       <div>
-        <input
-          type="range"
-          min="0"
-          max="10"
-          value={step}
-          onChange={defineStep}
-        />
-        <span>{step}</span>
+        {/* No hay step, solo count */}
+        <input value={state.step} onChange={e => dispatch({type: 'defineStep', payload: Number(e.target.value)})} />
       </div>
 
       <div>
         <button onClick={dec}>-</button>
-        <input value={count} onChange={defineCount} />
+        <input value={state.count} onChange={defineCount} />
         <button onClick={inc}>+</button>
       </div>
 
