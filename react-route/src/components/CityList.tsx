@@ -1,16 +1,12 @@
+import { useCities } from '../context/CitiesContext';
 import CityItem from './CityItem';
 import styles from './CityList.module.css'
 import Message from './Message';
 import Spinner from './Spinner';
 
-interface City {
-    id: string | number;
-    cityName: string;
-    emoji: string;
-    date: string;
-}
+export default function CityList() {   
+    const { cities, isLoading } = useCities();
 
-export default function CityList({ cities, isLoading } : { cities: City[], isLoading: boolean }) {   
     if (isLoading) {
         return <Spinner />
     }
