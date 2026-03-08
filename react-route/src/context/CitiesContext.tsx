@@ -8,6 +8,8 @@ interface CitiesContextType {
   isLoading: boolean;
   currentCity: City | null;
   getCity: (id: string) => Promise<void>;
+  createCity: (city: Omit<City, 'id'>) => Promise<City | null>;
+  deleteCity: (id: string | number) => Promise<void>;
 }
 
 const CitiesContext = createContext<CitiesContextType | undefined>(undefined);
@@ -47,6 +49,39 @@ function CitiesProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function createCity(city: Omit<City, 'id'>) {
+    try {
+      setIsLoading(true);
+      const res = await fetch(BASE_URL + "/cities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(city),
+      });
+      const data = await res.json();
+      const created = data && data.id ? data : { ...city, id: Date.now() };
+      setCities((prev) => [created, ...prev]);
+      return created;
+    } catch (error) {
+      console.error("Error creating city:", error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function deleteCity(id: string | number) {
+    try {
+      setIsLoading(true);
+      await fetch(BASE_URL + "/cities/" + id, { method: "DELETE" });
+      setCities((prev) => prev.filter((c) => c.id !== id));
+      if (currentCity && currentCity.id === id) setCurrentCity(null);
+    } catch (error) {
+      console.error("Error deleting city:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <CitiesContext.Provider
       value={{
@@ -54,6 +89,8 @@ function CitiesProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         currentCity,
         getCity,
+        createCity,
+        deleteCity,
       }}
     >
       {children}
